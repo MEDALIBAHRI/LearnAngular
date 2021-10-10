@@ -24,7 +24,8 @@ model :any={}
      this.router.navigateByUrl('/members');
      
     }, error=>{
-      this.toastr.error(error.error);
+      console.log(error);
+      //this.toastr.error(error.error);
     });
     
  }

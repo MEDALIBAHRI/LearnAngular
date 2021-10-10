@@ -11,6 +11,7 @@ export class RegisterComponent implements OnInit {
   
   @Output() cancelRegister = new EventEmitter();
   model :any ={};
+  validationErrors : string[] =[];
   constructor(private accountService : AccountService, private toastr : ToastrService) { }
 
   ngOnInit(): void {
@@ -23,8 +24,8 @@ export class RegisterComponent implements OnInit {
         this.cancel();
       }, error=>
       {
-        console.log(error);
-        this.toastr.error(error.error);
+        this.validationErrors =(error);
+        //this.toastr.error(error.error);
       });
   }
   cancel()
