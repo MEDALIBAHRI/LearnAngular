@@ -5,9 +5,13 @@ namespace API.Controllers
 {
     public class BuggyController : BaseApiController
     {
+        private readonly DataContext _context;
        
-        public BuggyController(DataContext dataContext): base(dataContext)
-        {}
+        public BuggyController(DataContext context)
+        {
+            this._context = context;
+        }
+            
 
         [HttpGet("server-error")]
         public  ActionResult<string> GetServerError()
