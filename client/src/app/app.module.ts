@@ -10,15 +10,17 @@ import { FormsModule } from '@angular/forms';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
-import { MembersDeailsComponent } from './members/members-deails/members-deails.component';
+import { MembersDeailsComponent } from './members/members-details/members-details.component';
 import { MembersListComponent } from './members/members-list/members-list.component';
 import { ListsComponent } from './lists/lists.component';
 import { MessagesComponent } from './messages/messages.component';
-import { ToastrModule } from 'ngx-toastr';
 import { SharedModule } from './_modules/shared.module';
 import { ErrorInterceptor } from './Interceptors/error-interceptor.interceptor';
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
+import { MemberCardComponent } from './members/member-card/member-card.component';
+import { JwtInterceptor } from './Interceptors/jwt.interceptor';
+
 
 
 @NgModule({
@@ -32,7 +34,8 @@ import { ServerErrorComponent } from './errors/server-error/server-error.compone
     ListsComponent,
     MessagesComponent,
     NotFoundComponent,
-    ServerErrorComponent
+    ServerErrorComponent,
+    MemberCardComponent
   ],
   imports: [
     BrowserModule,
@@ -43,7 +46,8 @@ import { ServerErrorComponent } from './errors/server-error/server-error.compone
     SharedModule
   ],
   providers: [
-    {provide : HTTP_INTERCEPTORS, useClass : ErrorInterceptor, multi : true}
+    {provide : HTTP_INTERCEPTORS, useClass : ErrorInterceptor, multi : true},
+    {provide : HTTP_INTERCEPTORS, useClass : JwtInterceptor, multi : true}
   ],
   bootstrap: [AppComponent]
 })
