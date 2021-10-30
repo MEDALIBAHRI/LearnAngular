@@ -8,6 +8,7 @@ using API.Entities;
 using API.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -15,26 +16,31 @@ namespace API.Controllers
     {
         private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepoistory;
-        public AccountController(IUserRepository userRepository, ITokenService tokenService) 
+        private readonly IMapper _mapper;
+        public AccountController(IUserRepository userRepository,
+         ITokenService tokenService, IMapper mapper) 
         {
             this._userRepoistory = userRepository;
             this._tokenService = tokenService;
-            
+            this._mapper = mapper;
         }
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDTO registerDTO)
         {
             if(await UserNameExist(registerDTO.Username)) return BadRequest("Username already exist");
+
+            var user =_mapper.Map<AppUser>(registerDTO);
+
             using var hmac = new HMACSHA512();
-            var user = new AppUser
-            {
-                UserName = registerDTO.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
-                PasswordSalt = hmac.Key
-            };
+            user.UserName = registerDTO.Username.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
+            user.PasswordSalt = hmac.Key;
             await this._userRepoistory.Add(user);
             await this._userRepoistory.SaveAllAsync();
-            return new UserDto{Username = user.UserName, Token = _tokenService.CreateToken(user)};
+            return new UserDto{Username = user.UserName, 
+            Token = _tokenService.CreateToken(user),
+            KnownAs = user.KnownAs
+            };
         }
         
         [HttpPost("login")]
