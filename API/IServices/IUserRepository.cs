@@ -7,6 +7,7 @@ namespace API.IServices
 {
     public interface IUserRepository
     {
+        Task<AppUser> Add(AppUser user);
          void Update(AppUser user);
          Task<bool> SaveAllAsync();
          Task<IEnumerable<AppUser>> GetUsersAsync();

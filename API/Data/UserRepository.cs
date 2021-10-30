@@ -21,6 +21,12 @@ namespace API.Data
             
         }
 
+        public async Task<AppUser> Add(AppUser user)
+        {
+            this._context.Entry(user).State = EntityState.Added;
+            return user;
+        }
+
         public async Task<IEnumerable<MemberDTO>> GetAllMemberAsync()
         {
            return await this._context.Users
