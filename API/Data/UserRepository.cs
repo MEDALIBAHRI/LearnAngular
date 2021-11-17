@@ -3,10 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using API.DTOs;
 using API.Entities;
+using API.Helpers;
 using API.IServices;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace API.Data
 {
@@ -27,10 +29,22 @@ namespace API.Data
             return user;
         }
 
-        public async Task<IEnumerable<MemberDTO>> GetAllMemberAsync()
+        public async Task<PagedList<MemberDTO>> GetAllMemberAsync(UserParams userParams)
         {
-           return await this._context.Users
-           .ProjectTo<MemberDTO>(_mapper.ConfigurationProvider).ToListAsync();
+           var users = this._context.Users.Where(x=>x.UserName != userParams.CurrentUserName
+                                                    && x.Gender == userParams.Gender);
+           var minDob = DateTime.Now.AddYears( -userParams.MaxAge - 1);
+           var maxDob = DateTime.Now.AddYears( -userParams.MinAge );
+           
+           users = users.Where(x=> x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
+           users = userParams.OrderBy switch
+           {
+               "created"=> users.OrderByDescending(x=>x.Created),
+               _ => users.OrderByDescending(x=>x.LastActive)
+           };
+           return await PagedList<MemberDTO>.CreateAsync(users
+           .ProjectTo<MemberDTO>(_mapper.ConfigurationProvider).AsNoTracking(),
+           userParams.PageNumber, userParams.PageSize);
         }
 
         public Task<MemberDTO> GetMemberAsync(string username)

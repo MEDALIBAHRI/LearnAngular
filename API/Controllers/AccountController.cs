@@ -39,7 +39,8 @@ namespace API.Controllers
             await this._userRepoistory.SaveAllAsync();
             return new UserDto{Username = user.UserName, 
             Token = _tokenService.CreateToken(user),
-            KnownAs = user.KnownAs
+            KnownAs = user.KnownAs,
+            Gender = user.Gender
             };
         }
         
@@ -58,7 +59,9 @@ namespace API.Controllers
             return new UserDto{
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                PhotoUrl = user.Photos.FirstOrDefault(x=>x.IsMain)?.Url};
+                PhotoUrl = user.Photos.FirstOrDefault(x=>x.IsMain)?.Url,
+                Gender = user.Gender,
+                KnownAs = user.KnownAs};
         }
         private async Task<bool> UserNameExist(string userName)
         {

@@ -12,6 +12,7 @@ using API.DTOs;
 using System.Security.Claims;
 using API.Helpers;
 using Microsoft.AspNetCore.Http;
+using API.Extensions;
 
 namespace API.Controllers
 {
@@ -31,8 +32,21 @@ namespace API.Controllers
         }
      
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDTO>>> GetUsers(){
-            var users = _mapper.Map<IEnumerable<MemberDTO>>(await _userRepository.GetAllMemberAsync());
+        public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery]UserParams userParams){
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            
+            if(string.IsNullOrEmpty(userParams.CurrentUserName))
+            {
+                userParams.CurrentUserName = user.UserName;
+            }
+
+            if(string.IsNullOrEmpty(userParams.Gender))
+            {
+                userParams.Gender = user.Gender == "male" ? "female" :"male";
+            }
+            var users = await _userRepository.GetAllMemberAsync(userParams);
+            Response.AddPaginationHeader(users.PageNumber, users.PageSize, 
+            users.TotalCount, users.TotalPages);
             return  Ok(users);
         }
         [HttpGet("{username}",Name = "GetUser")]
