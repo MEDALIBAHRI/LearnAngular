@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
+import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { Member } from 'src/app/_models/member';
-import { Photo } from 'src/app/_models/photo';
-import { AccountService } from 'src/app/_Services/account.service';
+import { Messages } from 'src/app/_models/message';
 import { MembersService } from 'src/app/_Services/members.service';
+import { MessageService } from 'src/app/_Services/message.service';
 
 @Component({
   selector: 'app-members-details',
@@ -12,15 +13,25 @@ import { MembersService } from 'src/app/_Services/members.service';
   styleUrls: ['./members-details.component.css']
 })
 export class MembersDeailsComponent implements OnInit {
+  @ViewChild('memberTabs', {static: true}) memberTabs: TabsetComponent;
+  activeTab : TabDirective;
   member : Member;
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
-
+  messages : Messages[] = [];
   
-  constructor(private memberService : MembersService, private route : ActivatedRoute) { }
+  constructor(private memberService : MembersService, private route : ActivatedRoute,
+    private messageService : MessageService) { }
 
   ngOnInit(): void {
-    this.loadMember();
+   
+    this.route.data.subscribe(data=>{
+      this.member = data.member;
+    });
+    this.route.queryParams.subscribe(params =>{
+      params.tab ? this.selectTab(params.tab) : this.selectTab(0);
+    });
+    
     this.galleryOptions = [
       {
         width: '500px',
@@ -30,7 +41,7 @@ export class MembersDeailsComponent implements OnInit {
         imageAnimation: NgxGalleryAnimation.Slide,
         preview:false
       }];
-     
+      this.galleryImages = this.getImages();
   }
   getImages():NgxGalleryImage[]
   {
@@ -45,12 +56,26 @@ export class MembersDeailsComponent implements OnInit {
     }
     return photos;
   }
-  loadMember()
+
+  onTabActivated(data : TabDirective)
   {
-    this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member=>
+      this.activeTab = data;
+      if(this.activeTab.heading === 'Messages' && this.messages.length === 0)
       {
-        this.member =member;
-        this.galleryImages = this.getImages();
+        this.loadMessages();
+      }
+  }
+
+  loadMessages()
+  {
+    this.messageService.getMessagesThread(this.member.username).subscribe(response =>
+      {
+        this.messages = response;
       });
+  }
+
+  selectTab(tabId : number)
+  {
+    this.memberTabs.tabs[tabId].active = true;
   }
 }

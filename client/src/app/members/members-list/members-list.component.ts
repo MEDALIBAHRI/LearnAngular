@@ -35,10 +35,10 @@ export class MembersListComponent implements OnInit {
   {
     this.memberServices.setUserParams(this.userParams);
     console.log(this.userParams);
-this.memberServices.getMembers(this.userParams).subscribe(response=>{
-  this.members = response.result;
-  this.pagination = response.pagination;
-});
+    this.memberServices.getMembers(this.userParams).subscribe(response=>{
+      this.members = response.result;
+      this.pagination = response.pagination;
+    });
   }
   
   pageChanged(event : any)
