@@ -26,6 +26,11 @@ import { PhotoEditorComponent } from './members/photo-editor/photo-editor.compon
 import { TextInputComponent } from './_forms/text-input/text-input.component';
 import { DateInputComponent } from './_forms/date-input/date-input.component';
 import { MemberMessageComponent } from './members/member-message/member-message.component';
+import { HasRolesDirective } from './_directives/has-roles.directive';
+import { UserManagementComponent } from './admin/user-management/user-management.component';
+import { PhotosManagementComponent } from './admin/photos-management/photos-management.component';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
+import { ModalRolesComponent } from './modals/modal-roles/modal-roles.component';
 
 
 
@@ -48,7 +53,12 @@ import { MemberMessageComponent } from './members/member-message/member-message.
     PhotoEditorComponent,
     TextInputComponent,
     DateInputComponent,
-    MemberMessageComponent
+    MemberMessageComponent,
+    HasRolesDirective,
+    UserManagementComponent,
+    PhotosManagementComponent,
+    AdminPanelComponent,
+    ModalRolesComponent
   ],
   imports: [
     BrowserModule,

@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Data;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using API.Entities;
 using Microsoft.AspNetCore.Authorization;
 using API.IServices;
 using AutoMapper;
 using API.DTOs;
-using System.Security.Claims;
 using API.Helpers;
 using Microsoft.AspNetCore.Http;
 using API.Extensions;
@@ -30,7 +26,7 @@ namespace API.Controllers
             this._userRepository = userRepository;
             this._photoService = photoService;
         }
-     
+      
         [HttpGet]
         public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery]UserParams userParams){
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
@@ -49,6 +45,8 @@ namespace API.Controllers
             users.TotalCount, users.TotalPages);
             return  Ok(users);
         }
+
+        [Authorize(Roles ="Member")]
         [HttpGet("{username}",Name = "GetUser")]
          public async Task<ActionResult<MemberDTO>> GetUser(string username){
            return  Ok(_mapper.Map<MemberDTO>(await _userRepository.GetMemberAsync(username)));
