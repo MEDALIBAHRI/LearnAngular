@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Tasks;
 using API.Data;
 using API.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -31,6 +32,19 @@ namespace API.Extensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])),
                     ValidateIssuer = false,
                     ValidateAudience = false
+                };
+                options.Events = new JwtBearerEvents{
+                    OnMessageReceived = conetxt =>{
+                        var accessToken = conetxt.Request.Query["access_token"];
+                        var path = conetxt.Request.Path;
+                        if(!string.IsNullOrEmpty(accessToken) 
+                            && path.StartsWithSegments("/hubs"))
+                        {
+                            conetxt.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

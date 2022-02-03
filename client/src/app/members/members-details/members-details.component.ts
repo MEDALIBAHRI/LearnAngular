@@ -1,32 +1,46 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
+import { take } from 'rxjs/operators';
 import { Member } from 'src/app/_models/member';
-import { Messages } from 'src/app/_models/message';
-import { MembersService } from 'src/app/_Services/members.service';
+import { Message } from 'src/app/_models/message';
+import { User } from 'src/app/_models/user';
+import { AccountService } from 'src/app/_Services/account.service';
 import { MessageService } from 'src/app/_Services/message.service';
+import { PresenceService } from 'src/app/_Services/presence.service';
 
 @Component({
   selector: 'app-members-details',
   templateUrl: './members-details.component.html',
   styleUrls: ['./members-details.component.css']
 })
-export class MembersDeailsComponent implements OnInit {
+export class MembersDeailsComponent implements OnInit, OnDestroy {
   @ViewChild('memberTabs', {static: true}) memberTabs: TabsetComponent;
   activeTab : TabDirective;
   member : Member;
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
-  messages : Messages[] = [];
+  messages : Message[] = [];
+ user : User;
+  constructor(private route : ActivatedRoute,
+    private messageService : MessageService, public presence : PresenceService,
+     private accountService: AccountService, private router : Router) {
+      this.accountService.currentUser$.pipe(take(1)).subscribe(u=>{
+        this.user =u;
+        this.router.routeReuseStrategy.shouldReuseRoute = ()=>false;
+      });
+     }
+ 
+setOnline()
+{
   
-  constructor(private memberService : MembersService, private route : ActivatedRoute,
-    private messageService : MessageService) { }
-
+}
   ngOnInit(): void {
    
     this.route.data.subscribe(data=>{
       this.member = data.member;
+      this.setOnline();
     });
     this.route.queryParams.subscribe(params =>{
       params.tab ? this.selectTab(params.tab) : this.selectTab(0);
@@ -62,7 +76,11 @@ export class MembersDeailsComponent implements OnInit {
       this.activeTab = data;
       if(this.activeTab.heading === 'Messages' && this.messages.length === 0)
       {
-        this.loadMessages();
+        this.messageService.createHubConnection(this.user, this.member.username);
+        
+      }
+      else{
+        this.messageService.stopHubConnection();
       }
   }
 
@@ -77,5 +95,8 @@ export class MembersDeailsComponent implements OnInit {
   selectTab(tabId : number)
   {
     this.memberTabs.tabs[tabId].active = true;
+  }
+  ngOnDestroy(): void {
+    this.messageService.stopHubConnection();
   }
 }

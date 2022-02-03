@@ -27,14 +27,34 @@ namespace API.Data
            
         }
 
+        public void AddGroup(Group group)
+        {
+            _dataContext.Groups.Add(group);
+        }
+
         public void Delete(Messages message)
         {
             _dataContext.Messages.Remove(message);
         }
 
+        public async Task<Connection> GetConnection(string connectionId)
+        {
+           return await _dataContext.Connections.FindAsync(connectionId);
+        }
+
+        public async Task<Group> GetGroupForConnection(string connectionId)
+        {
+            return await _dataContext.Groups.Include(x=>x.Conenctions).Where(c=>c.Conenctions.Any(x=>x.ConnectionId==connectionId)).FirstOrDefaultAsync();
+        }
+
         public async Task<Messages> GetMessage(int id)
         {
             return await _dataContext.Messages.FindAsync(id);
+        }
+
+        public async Task<Group> GetMessageGroup(string groupName)
+        {
+            return await _dataContext.Groups.Include(x=>x.Conenctions).FirstOrDefaultAsync(x=>x.Name == groupName);
         }
 
         public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
@@ -53,17 +73,14 @@ namespace API.Data
 
         public async  Task<IEnumerable<MessageDto>> GetMessagesThread(string currentUsername, string recipientUsername)
         {
-             var messages = await _dataContext.Messages
+             var messages =  _dataContext.Messages
                 .Where(m => m.Recipient.UserName == currentUsername && m.ReceiverDeleted == false
                         && m.Sender.UserName == recipientUsername
                         || m.Recipient.UserName == recipientUsername
                         && m.Sender.UserName == currentUsername && m.SenderDeleted == false
-                )
-                .OrderBy(m => m.DateSent)
-                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+                );
 
-            var unreadMessages = messages.Where(m => m.DateRead == null
+                var unreadMessages = messages.Where(m => m.DateRead == null
                 && m.RecipientUserName == currentUsername).ToList();
 
             if (unreadMessages.Any())
@@ -71,12 +88,20 @@ namespace API.Data
                 foreach (var message in unreadMessages)
                 {
                     message.DateRead = DateTime.UtcNow;
+                    
                 }
-                 await _dataContext.SaveChangesAsync();
+                await _dataContext.SaveChangesAsync();
+               
             }
-
-            return messages;
+               return await messages.OrderBy(m => m.DateSent)
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
             
+        }
+
+        public void RemoveConnection(Connection connection)
+        {
+            _dataContext.Connections.Remove(connection);
         }
 
         public async Task<bool> SaveAllAsync()

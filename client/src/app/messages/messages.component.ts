@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Messages } from '../_models/message';
+import { Message } from '../_models/message';
 import { Pagination } from '../_modules/pagination';
 import { MessageService } from '../_Services/message.service';
 
@@ -12,7 +12,7 @@ export class MessagesComponent implements OnInit {
   container : string ="Unread";
   pageNumber = 1;
   pageSize = 5;
-  messages : Messages[];
+  messages : Message[];
   pagination : Pagination;
   loading : boolean = false;
   constructor(private messageService : MessageService) { }

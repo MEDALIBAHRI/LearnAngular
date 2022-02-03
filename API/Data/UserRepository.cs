@@ -84,4 +84,4 @@ namespace API.Data
             this._context.Entry(user).State = EntityState.Modified;
         }
     }
-}
+} 

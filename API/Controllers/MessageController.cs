@@ -15,13 +15,14 @@ namespace API.Controllers
     [Authorize]
     public class MessagesController : BaseApiController
     {
-        private readonly IUserRepository _userRepoistory;
+        private readonly IUserRepository _userRepository;
+        
         private readonly IMessageRepository _messageRepository;
         private readonly IMapper _mapper;
         public MessagesController(IUserRepository userRepository,IMessageRepository messageRepository, IMapper mapper) 
         {
+            this._userRepository = userRepository;
             this._mapper = mapper;
-            this._userRepoistory = userRepository;
             this._messageRepository = messageRepository;
         }
 
@@ -38,7 +39,7 @@ namespace API.Controllers
        public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesThread(string username)
        {
            var currentUsername = User.GetUsername();
-           var recipient = await _userRepoistory.GetUserByUsernameAsync(username);
+           var recipient = await _userRepository.GetUserByUsernameAsync(username);
 
            if(recipient == null)
            return BadRequest("Recipient not defined");
@@ -55,8 +56,8 @@ namespace API.Controllers
            if(username == messageDto.RecipientUsername.ToLower())
            return BadRequest("Cannot send message to yourself");
 
-           var sender = await _userRepoistory.GetUserByUsernameAsync(username);
-           var recepient = await _userRepoistory.GetUserByUsernameAsync(messageDto.RecipientUsername);
+           var sender = await _userRepository.GetUserByUsernameAsync(username);
+           var recepient = await _userRepository.GetUserByUsernameAsync(messageDto.RecipientUsername);
 
            if(recepient == null)
             return BadRequest("Recepient not exist");
@@ -102,5 +103,11 @@ namespace API.Controllers
 
           return BadRequest("Problem on delete message");
        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is MessagesController controller &&
+                   EqualityComparer<IUserRepository>.Default.Equals(_userRepository, controller._userRepository);
+        }
     }
 }
