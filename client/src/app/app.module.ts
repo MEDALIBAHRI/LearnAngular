@@ -31,10 +31,8 @@ import { UserManagementComponent } from './admin/user-management/user-management
 import { PhotosManagementComponent } from './admin/photos-management/photos-management.component';
 import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 import { ModalRolesComponent } from './modals/modal-roles/modal-roles.component';
-
-
-
-
+import { ConfirmDialogComponent } from './modals/confirm-dialog/confirm-dialog.component';
+import { NewsComponent } from './news/news.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +56,9 @@ import { ModalRolesComponent } from './modals/modal-roles/modal-roles.component'
     UserManagementComponent,
     PhotosManagementComponent,
     AdminPanelComponent,
-    ModalRolesComponent
+    ModalRolesComponent,
+    ConfirmDialogComponent,
+    NewsComponent
   ],
   imports: [
     BrowserModule,
@@ -69,14 +69,6 @@ import { ModalRolesComponent } from './modals/modal-roles/modal-roles.component'
     ReactiveFormsModule,
     SharedModule,
     NgxSpinnerModule,
-    
-    
-    
-    
-    
-    
-    
-    
   ],
   providers: [
     {provide : HTTP_INTERCEPTORS, useClass : ErrorInterceptor, multi : true},

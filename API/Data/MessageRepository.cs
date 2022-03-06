@@ -44,7 +44,7 @@ namespace API.Data
 
         public async Task<Group> GetGroupForConnection(string connectionId)
         {
-            return await _dataContext.Groups.Include(x=>x.Conenctions).Where(c=>c.Conenctions.Any(x=>x.ConnectionId==connectionId)).FirstOrDefaultAsync();
+            return await _dataContext.Groups.Include(x=>x.Connections).Where(c=>c.Connections.Any(x=>x.ConnectionId==connectionId)).FirstOrDefaultAsync();
         }
 
         public async Task<Messages> GetMessage(int id)
@@ -54,12 +54,15 @@ namespace API.Data
 
         public async Task<Group> GetMessageGroup(string groupName)
         {
-            return await _dataContext.Groups.Include(x=>x.Conenctions).FirstOrDefaultAsync(x=>x.Name == groupName);
+            return await _dataContext.Groups.Include(x=>x.Connections).FirstOrDefaultAsync(x=>x.Name == groupName);
         }
 
         public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
         {
-          var query = _dataContext.Messages.OrderByDescending(m=>m.DateSent).AsQueryable();
+          var query = _dataContext.Messages
+          .OrderByDescending(m=>m.DateSent)
+          .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
+          .AsQueryable();
 
           query = messageParams.Container switch {
               "Inbox" => query.Where(x=>x.RecipientUserName == messageParams.Username && x.ReceiverDeleted == false),
@@ -67,21 +70,25 @@ namespace API.Data
               _ => query.Where(x=> x.RecipientUserName == messageParams.Username && x.ReceiverDeleted == false
                                  && x.DateRead == null)
           };
-         var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
-          return await PagedList<MessageDto>.CreateAsync(messages , messageParams.PageNumber, messageParams.PageSize);
+          return await PagedList<MessageDto>.CreateAsync(query , messageParams.PageNumber, messageParams.PageSize);
         }
 
         public async  Task<IEnumerable<MessageDto>> GetMessagesThread(string currentUsername, string recipientUsername)
         {
-             var messages =  _dataContext.Messages
+             var query =   _dataContext.Messages
                 .Where(m => m.Recipient.UserName == currentUsername && m.ReceiverDeleted == false
                         && m.Sender.UserName == recipientUsername
                         || m.Recipient.UserName == recipientUsername
-                        && m.Sender.UserName == currentUsername && m.SenderDeleted == false
+                        && m.Sender.UserName == currentUsername
+                         && m.SenderDeleted == false
                 );
-
-                var unreadMessages = messages.Where(m => m.DateRead == null
+                 var unreadMessages = query.Where(m => m.DateRead == null
                 && m.RecipientUserName == currentUsername).ToList();
+              var messages = await  query.OrderBy(x=>x.DateSent)
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+               
 
             if (unreadMessages.Any())
             {
@@ -90,12 +97,10 @@ namespace API.Data
                     message.DateRead = DateTime.UtcNow;
                     
                 }
-                await _dataContext.SaveChangesAsync();
-               
             }
-               return await messages.OrderBy(m => m.DateSent)
-                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+
+            
+               return  messages;
             
         }
 

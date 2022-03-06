@@ -14,11 +14,11 @@ namespace API.Helpers
             if(!resultContext.HttpContext.User.Identity.IsAuthenticated) return;
 
             var username = resultContext.HttpContext.User.GetUsername();
-            var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
-            var user = await repo.GetUserByUsernameAsync(username);
+            var unitOfWork = resultContext.HttpContext.RequestServices.GetService<IUnitOfWork>();
+            var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(username);
             user.LastActive = System.DateTime.Now;
-            repo.Update(user);
-            await repo.SaveAllAsync();
+            unitOfWork.UserRepository.Update(user);
+            await unitOfWork.Complete();
         }
     }
 }

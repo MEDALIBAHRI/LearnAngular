@@ -23,12 +23,6 @@ namespace API.Data
             
         }
 
-        public async Task<AppUser> Add(AppUser user)
-        {
-            this._context.Entry(user).State = EntityState.Added;
-            return user;
-        }
-
         public async Task<PagedList<MemberDTO>> GetAllMemberAsync(UserParams userParams)
         {
            var users = this._context.Users.Where(x=>x.UserName != userParams.CurrentUserName
@@ -45,6 +39,14 @@ namespace API.Data
            return await PagedList<MemberDTO>.CreateAsync(users
            .ProjectTo<MemberDTO>(_mapper.ConfigurationProvider).AsNoTracking(),
            userParams.PageNumber, userParams.PageSize);
+        }
+
+        public async Task<string> GetGenderByUsername(string username)
+        {
+          return await this._context.Users
+                        .Where(x=> x.UserName == username)
+                        .Select(x=>x.Gender)
+                        .FirstOrDefaultAsync();
         }
 
         public Task<MemberDTO> GetMemberAsync(string username)
